@@ -1,0 +1,17 @@
+[
+  {
+    "modid": "worldgenindicators",
+    "name": "WorldGenIndicators",
+    "description": "A mod that indicates worldgen",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Buuz135"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": []
+  }
+]
