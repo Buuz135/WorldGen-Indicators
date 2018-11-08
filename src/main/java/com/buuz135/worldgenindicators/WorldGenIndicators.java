@@ -24,7 +24,6 @@ package com.buuz135.worldgenindicators;
 import com.buuz135.worldgenindicators.api.IChecker;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraftforge.fml.common.IWorldGenerator;
@@ -84,23 +83,31 @@ public class WorldGenIndicators {
 
         @Override
         public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
-            Chunk chunk = chunkProvider.getLoadedChunk(chunkX, chunkZ);
-            if (chunk != null) {
-                for (int x = 0; x < 16; x++) {
-                    for (int z = 0; z < 16; z++) {
-                        for (int i = 0; i < world.getTopSolidOrLiquidBlock(new BlockPos(chunkX * 16 + x, i, chunkZ * 16 + z)).getY() + 4; i++) {
-                            if (check(world, chunkX, chunkZ, x, z, i)) {
-                                break;
-                            }
+            for (int x = 8; x < 8 + 16; ++x) {
+                for (int z = 8; z < 8 + 16; ++z) {
+                    for (int i = 0; i < world.getTopSolidOrLiquidBlock(new BlockPos(chunkX * 16 + x, i, chunkZ * 16 + z)).getY() + 4; i++) {
+                        if (check(world, chunkX, chunkZ, x, z, i)) {
+                            break;
                         }
                     }
                 }
             }
+//            for (int x = 0; x < 16; ++x) {
+//                for (int z = 0; z < 16; ++z) {
+//                    if (x == 0 && !chunkProvider.isChunkGeneratedAt(chunkX-1, chunkZ)) continue;
+//                    if (z == 0 && !chunkProvider.isChunkGeneratedAt(chunkX, chunkZ-1)) continue;
+//                    for (int i = 0; i < world.getTopSolidOrLiquidBlock(new BlockPos(chunkX * 16 + x, i, chunkZ * 16 + z)).getY() + 4; i++) {
+//                        if (check(world, chunkX, chunkZ, x, z, i)) {
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
         }
 
         private boolean check(World world, int chunkX, int chunkZ, int x, int z, int i) {
+            BlockPos pos = new BlockPos(chunkX * 16 + x, i, chunkZ * 16 + z);
             for (IChecker iChecker : WorldGenManager.checkerList) {
-                BlockPos pos = new BlockPos(chunkX * 16 + x, i, chunkZ * 16 + z);
                 if (iChecker.isValid(world, pos) && world.rand.nextDouble() < iChecker.getWorkingChance()) {
                     iChecker.getRandomIndicator(world.rand).generate(world, pos);
                     return true;
