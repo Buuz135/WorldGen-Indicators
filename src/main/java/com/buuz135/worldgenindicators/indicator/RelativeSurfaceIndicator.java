@@ -41,8 +41,6 @@ public class RelativeSurfaceIndicator implements IIndicator {
         IBlock selected = blockList.get(world.rand.nextInt(blockList.size()));
         int y = world.getTopSolidOrLiquidBlock(new BlockPos(original.getX(), 0, original.getZ())).getY();
         BlockPos pos = new BlockPos(original.getX(), y + relative, original.getZ());
-        if (!world.getBlockState(pos).getMaterial().isLiquid() && world.isAirBlock(pos)) {
-            world.setBlockState(pos, Block.getBlockFromName(selected.getDefinition().getId()).getStateFromMeta(selected.getMeta()), 2);
-        }
+        world.setBlockState(pos, Block.getBlockFromName(selected.getDefinition().getId()).getStateFromMeta(selected.getMeta()), 2);
     }
 }
