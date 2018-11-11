@@ -29,7 +29,7 @@ var blockChecker = BlockChecker.create(0.1).addValid(redstoneOre).addIndicator(s
 WorldGenManager.addChecker(blockChecker);
 ```
 ### Relative Surface Indicator
-The relative surface indicator needs a parameter in the create that is how many blocks above the surface will generate the blocks.
+The relative surface indicator needs a parameter in the create that is how many blocks relative to the surface will generate the blocks.
 ```
 import mods.worldgenindicators.BlockChecker;
 import mods.worldgenindicators.WorldGenManager;
@@ -40,5 +40,20 @@ var grass = <minecraft:grass>.asBlock();
 var glass = <minecraft:glass>.asBlock();
 var surfaceIndicator = RelativeSurfaceIndicator.create(20).add(glass);
 var blockChecker = BlockChecker.create(1).addValid(grass).addIndicator(surfaceIndicator);
+WorldGenManager.addChecker(blockChecker);
+```
+
+### Relative Block Indicator
+The relative block indicator generates an indicator based on the position of the detected block. It needs a parameter that is how many blocks relative to the block it will generate.
+```
+import mods.worldgenindicators.BlockChecker;
+import mods.worldgenindicators.WorldGenManager;
+import mods.worldgenindicators.RelativeBlockIndicator;
+import crafttweaker.block.IBlock;
+
+var grass = <minecraft:grass>.asBlock();
+var glass = <minecraft:glass>.asBlock();
+var blockIndicator = RelativeBlockIndicator.create(20).add(glass);
+var blockChecker = BlockChecker.create(1).addValid(grass).addIndicator(blockIndicator);
 WorldGenManager.addChecker(blockChecker);
 ```
