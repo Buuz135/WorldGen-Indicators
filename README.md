@@ -57,3 +57,28 @@ var blockIndicator = RelativeBlockIndicator.create(20).add(glass);
 var blockChecker = BlockChecker.create(1).addValid(grass).addIndicator(blockIndicator);
 WorldGenManager.addChecker(blockChecker);
 ```
+
+### Whitelist and Blacklist
+```
+import mods.worldgenindicators.BlockChecker;
+import mods.worldgenindicators.WorldGenManager;
+import mods.worldgenindicators.SurfaceIndicator;
+import mods.worldgenindicators.RelativeSurfaceIndicator;
+import crafttweaker.block.IBlock;
+import crafttweaker.item.IItemStack;
+
+WorldGenManager.addChecker(
+    BlockChecker.create(0.5d)
+        .addWhitelistEntry(<minecraft:sand>.asBlock())
+        .addValid(<minecraft:gold_ore>.asBlock())
+        .addIndicator(SurfaceIndicator.create().add( <minecraft:gold_block>.asBlock()) )
+);
+
+WorldGenManager.addChecker(
+    BlockChecker.create(0.5d)
+        .addBlacklistEntry(<minecraft:grass>.asBlock())
+        .addBlacklistEntry(<blockstate:minecraft:air>.block)
+        .addValid(<minecraft:iron_ore>.asBlock())
+        .addIndicator(RelativeSurfaceIndicator.create(2).add(<minecraft:diamond_block>.asBlock()))
+);
+```
