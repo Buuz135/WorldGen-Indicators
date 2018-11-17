@@ -22,6 +22,7 @@
 package com.buuz135.worldgenindicators.api;
 
 import crafttweaker.annotations.ZenRegister;
+import crafttweaker.api.block.IBlock;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import stanhebben.zenscript.annotations.ZenMethod;
@@ -29,17 +30,25 @@ import stanhebben.zenscript.annotations.ZenMethod;
 import java.util.Random;
 
 @ZenRegister
-public interface IChecker<T> {
+public interface IChecker {
 
     double getWorkingChance();
 
     boolean isValid(World world, BlockPos pos);
 
-    @ZenMethod
-    IChecker<T> addValid(T valid);
+    boolean isPlacementValid(World world, BlockPos pos);
 
     @ZenMethod
-    IChecker<T> addIndicator(IIndicator indicator);
+    IChecker addValid(IBlock valid);
+
+    @ZenMethod
+    IChecker addIndicator(IIndicator indicator);
+
+    @ZenMethod
+    IChecker addWhitelistEntry(IBlock block);
+
+    @ZenMethod
+    IChecker addBlacklistEntry(IBlock block);
 
     IIndicator getRandomIndicator(Random random);
 

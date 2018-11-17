@@ -33,5 +33,5 @@ public interface IIndicator {
     @ZenMethod
     IIndicator add(IBlock block);
 
-    void generate(World world, BlockPos pos);
+    void generate(World world, BlockPos pos, IChecker checker);
 }

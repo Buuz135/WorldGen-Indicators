@@ -1,5 +1,6 @@
 package com.buuz135.worldgenindicators.indicator;
 
+import com.buuz135.worldgenindicators.api.IChecker;
 import com.buuz135.worldgenindicators.api.IIndicator;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.block.IBlock;
@@ -37,10 +38,12 @@ public class RelativeSurfaceIndicator implements IIndicator {
     }
 
     @Override
-    public void generate(World world, BlockPos original) {
+    public void generate(World world, BlockPos original, IChecker checker) {
         IBlock selected = blockList.get(world.rand.nextInt(blockList.size()));
         int y = world.getTopSolidOrLiquidBlock(new BlockPos(original.getX(), 0, original.getZ())).getY();
         BlockPos pos = new BlockPos(original.getX(), y + relative, original.getZ());
-        world.setBlockState(pos, Block.getBlockFromName(selected.getDefinition().getId()).getStateFromMeta(selected.getMeta()), 2);
+        if (checker.isPlacementValid(world, pos)) {
+            world.setBlockState(pos, Block.getBlockFromName(selected.getDefinition().getId()).getStateFromMeta(selected.getMeta()), 2);
+        }
     }
 }
