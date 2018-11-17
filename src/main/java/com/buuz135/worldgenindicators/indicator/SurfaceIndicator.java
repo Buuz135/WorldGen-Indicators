@@ -21,6 +21,7 @@
  */
 package com.buuz135.worldgenindicators.indicator;
 
+import com.buuz135.worldgenindicators.api.IChecker;
 import com.buuz135.worldgenindicators.api.IIndicator;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.block.IBlock;
@@ -56,11 +57,11 @@ public class SurfaceIndicator implements IIndicator {
     }
 
     @Override
-    public void generate(World world, BlockPos original) {
+    public void generate(World world, BlockPos original, IChecker checker) {
         IBlock selected = blockList.get(world.rand.nextInt(blockList.size()));
         int y = world.getTopSolidOrLiquidBlock(new BlockPos(original.getX(), 0, original.getZ())).getY();
         BlockPos pos = new BlockPos(original.getX(), y, original.getZ());
-        if (!world.getBlockState(pos).getMaterial().isLiquid() && world.isAirBlock(pos)) {
+        if (!world.getBlockState(pos).getMaterial().isLiquid() && world.isAirBlock(pos) && checker.isPlacementValid(world, pos.down())) {
             world.setBlockState(pos, Block.getBlockFromName(selected.getDefinition().getId()).getStateFromMeta(selected.getMeta()));
         }
     }

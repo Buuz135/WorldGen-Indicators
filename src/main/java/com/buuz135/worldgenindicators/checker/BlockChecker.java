@@ -31,28 +31,31 @@ import net.minecraft.world.World;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @ZenRegister
 @ZenClass("mods.worldgenindicators.BlockChecker")
-public class BlockChecker implements IChecker<IBlock> {
-
-    private double chance;
-    private List<IBlock> blockList;
+public class BlockChecker implements IChecker {
+    private double           chance;
+    private List<IBlock>     blockList;
+    private List<IBlock>     blockWhitelist;
+    private List<IBlock>     blockBlacklist;
     private List<IIndicator> indicators;
 
     public BlockChecker(double chance) {
         this.chance = chance;
         this.blockList = new ArrayList<>();
         this.indicators = new ArrayList<>();
+        this.blockWhitelist = new ArrayList<>();
+        this.blockBlacklist = new ArrayList<>();
     }
+
 
     @ZenMethod
     public static BlockChecker create(double chance) {
         return new BlockChecker(chance);
     }
+
 
     @Override
     public double getWorkingChance() {
@@ -68,6 +71,12 @@ public class BlockChecker implements IChecker<IBlock> {
         return false;
     }
 
+    @Override
+    public boolean isPlacementValid(World world, BlockPos pos) {
+        IBlock block = new MCWorldBlock(world, pos.getX(), pos.getY(), pos.getZ());
+        return blockWhitelist.isEmpty() ? blockBlacklist.stream().noneMatch(b -> b.matches(block)) : blockWhitelist.stream().anyMatch(b -> b.matches(block));
+    }
+
     @ZenMethod
     @Override
     public IChecker addValid(IBlock valid) {
@@ -79,6 +88,20 @@ public class BlockChecker implements IChecker<IBlock> {
     @Override
     public IChecker addIndicator(IIndicator indicator) {
         this.indicators.add(indicator);
+        return this;
+    }
+
+    @ZenMethod
+    @Override
+    public IChecker addWhitelistEntry(IBlock block) {
+        this.blockWhitelist.add(block);
+        return this;
+    }
+
+    @ZenMethod
+    @Override
+    public IChecker addBlacklistEntry(IBlock block) {
+        this.blockBlacklist.add(block);
         return this;
     }
 

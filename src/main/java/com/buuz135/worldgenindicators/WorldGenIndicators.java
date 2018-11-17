@@ -90,7 +90,8 @@ public class WorldGenIndicators {
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             CACHED_CHECKER.keySet().iterator().forEachRemaining(worldBlockPosPair -> {
-                CACHED_CHECKER.get(worldBlockPosPair).getRandomIndicator(worldBlockPosPair.getLeft().rand).generate(worldBlockPosPair.getLeft(), worldBlockPosPair.getRight());
+                IChecker checker = CACHED_CHECKER.get(worldBlockPosPair);
+                checker.getRandomIndicator(worldBlockPosPair.getLeft().rand).generate(worldBlockPosPair.getLeft(), worldBlockPosPair.getRight(), checker);
                 CACHED_CHECKER.remove(worldBlockPosPair);
             });
         }
