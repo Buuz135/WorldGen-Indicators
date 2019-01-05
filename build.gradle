@@ -57,7 +57,7 @@ repositories {
 }
 
 dependencies {
-    compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.+"
+    compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.13.511"
 }
 
 processResources {

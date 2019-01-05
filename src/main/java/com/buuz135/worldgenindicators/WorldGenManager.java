@@ -34,9 +34,21 @@ import java.util.List;
 public class WorldGenManager {
 
     public static List<IChecker> checkerList = new ArrayList<>();
+    public static int CHECKING_OPERATIONS_TICK = 1;
+    public static boolean TIME_LOGGER = true;
 
     @ZenMethod
     public static void addChecker(IChecker checker) {
         checkerList.add(checker);
+    }
+
+    @ZenMethod
+    public static void setCheckingOperationsTick(int checkingOperationsTick) {
+        CHECKING_OPERATIONS_TICK = checkingOperationsTick;
+    }
+
+    @ZenMethod
+    public static void disableLogger() {
+        TIME_LOGGER = false;
     }
 }

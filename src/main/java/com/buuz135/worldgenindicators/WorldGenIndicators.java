@@ -35,6 +35,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,6 +59,37 @@ public class WorldGenIndicators {
      */
     @Mod.Instance(MOD_ID)
     public static WorldGenIndicators INSTANCE;
+    public static Logger LOGGER;
+    public static ConcurrentHashMap<Pair<World, BlockPos>, IChecker> CACHED_CHECKER = new ConcurrentHashMap<>();
+
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            long time = System.currentTimeMillis();
+            int checked = 0;
+            for (Pair<Integer, Integer> integerIntegerPair : WorldGenIndicatorsGenerator.CHUNKS_TO_CHECK.keySet()) {
+                World world = WorldGenIndicatorsGenerator.CHUNKS_TO_CHECK.get(integerIntegerPair);
+                WorldGenIndicatorsGenerator.checkSection(world, integerIntegerPair.getLeft(), integerIntegerPair.getRight());
+                WorldGenIndicatorsGenerator.CHUNKS_TO_CHECK.remove(integerIntegerPair);
+                ++checked;
+                if (checked >= WorldGenManager.CHECKING_OPERATIONS_TICK) {
+                    if (System.currentTimeMillis() - time > 60 && WorldGenManager.TIME_LOGGER)
+                        LOGGER.warn("WorldGenIndicators checking is taking to long! (" + (System.currentTimeMillis() - time) + "ms). Current section checking: " + WorldGenManager.CHECKING_OPERATIONS_TICK +
+                                ". You can change that by running 'WorldGenManager.setCheckingOperationsTick(int amount)' in the script. You can disable this by running 'WorldGenManager.disableLogger()'");
+                    break;
+                }
+            }
+        }
+        if (event.phase == TickEvent.Phase.END) {
+            CACHED_CHECKER.keySet().iterator().forEachRemaining(worldBlockPosPair -> {
+                if (worldBlockPosPair.getLeft().isBlockLoaded(worldBlockPosPair.getRight())) {
+                    IChecker checker = CACHED_CHECKER.get(worldBlockPosPair);
+                    checker.getRandomIndicator(worldBlockPosPair.getLeft().rand).generate(worldBlockPosPair.getLeft(), worldBlockPosPair.getRight(), checker);
+                    CACHED_CHECKER.remove(worldBlockPosPair);
+                }
+            });
+        }
+    }
 
     /**
      * This is the first initialization event. Register tile entities here.
@@ -66,6 +98,7 @@ public class WorldGenIndicators {
     @Mod.EventHandler
     public void preinit(FMLPreInitializationEvent event) {
         GameRegistry.registerWorldGenerator(new WorldGenIndicatorsGenerator(), Integer.MAX_VALUE);
+        LOGGER = event.getModLog();
     }
 
     /**
@@ -84,48 +117,12 @@ public class WorldGenIndicators {
 
     }
 
-    public static ConcurrentHashMap<Pair<World, BlockPos>, IChecker> CACHED_CHECKER = new ConcurrentHashMap<>();
-
-    @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            CACHED_CHECKER.keySet().iterator().forEachRemaining(worldBlockPosPair -> {
-                IChecker checker = CACHED_CHECKER.get(worldBlockPosPair);
-                checker.getRandomIndicator(worldBlockPosPair.getLeft().rand).generate(worldBlockPosPair.getLeft(), worldBlockPosPair.getRight(), checker);
-                CACHED_CHECKER.remove(worldBlockPosPair);
-            });
-        }
-    }
-
     public static class WorldGenIndicatorsGenerator implements IWorldGenerator {
 
-        public static boolean started = false;
         public static ConcurrentHashMap<Pair<Integer, Integer>, World> CHUNKS_TO_CHECK = new ConcurrentHashMap<>();
-        public static Thread THREAD = new Thread(() -> {
-            while (true) {
-                CHUNKS_TO_CHECK.keySet().iterator().forEachRemaining(integerIntegerPair -> {
-                    World world = CHUNKS_TO_CHECK.get(integerIntegerPair);
-                    int chunkX = integerIntegerPair.getLeft();
-                    int chunkZ = integerIntegerPair.getRight();
-                    for (int x = 8; x < 8 + 16; ++x) {
-                        for (int z = 8; z < 8 + 16; ++z) {
-                            for (int i = 0; i < world.getTopSolidOrLiquidBlock(new BlockPos(chunkX * 16 + x, i, chunkZ * 16 + z)).getY() + 4; i++) {
-                                check(world, chunkX, chunkZ, x, z, i);
-                            }
-                        }
-                    }
-                    CHUNKS_TO_CHECK.remove(integerIntegerPair);
-                });
-                try {
-                    Thread.sleep(25);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
 
-        private static boolean check(World world, int chunkX, int chunkZ, int x, int z, int i) {
-            BlockPos pos = new BlockPos(chunkX * 16 + x, i, chunkZ * 16 + z);
+        public static boolean check(World world, int x, int z, int i) {
+            BlockPos pos = new BlockPos(x, i, z);
             for (IChecker iChecker : WorldGenManager.checkerList) {
                 if (iChecker.isValid(world, pos) && world.rand.nextDouble() < iChecker.getWorkingChance()) {
                     CACHED_CHECKER.put(Pair.of(world, pos), iChecker);
@@ -135,14 +132,23 @@ public class WorldGenIndicators {
             return false;
         }
 
+        public static void checkSection(World world, int posX, int posZ) {
+            for (int x = 0; x < 4; ++x) {
+                for (int z = 0; z < 16; ++z) {
+                    for (int i = 0; i < world.getTopSolidOrLiquidBlock(new BlockPos(posX + x, i, posZ + z)).getY() + 4; i++) {
+                        if (WorldGenIndicatorsGenerator.check(world, posX + x, posZ + z, i)) break;
+                    }
+                }
+            }
+        }
+
         @Override
         public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
-            if (!started) {
-                THREAD.start();
-                started = true;
-            }
             if (!CHUNKS_TO_CHECK.containsKey(Pair.of(chunkX, chunkZ)))
-                CHUNKS_TO_CHECK.put(Pair.of(chunkX, chunkZ), world);
+                CHUNKS_TO_CHECK.put(Pair.of(chunkX * 16 + 8, chunkZ * 16 + 8), world);
+            CHUNKS_TO_CHECK.put(Pair.of(chunkX * 16 + 8 + 4, chunkZ * 16 + 8), world);
+            CHUNKS_TO_CHECK.put(Pair.of(chunkX * 16 + 8 + 8, chunkZ * 16 + 8), world);
+            CHUNKS_TO_CHECK.put(Pair.of(chunkX * 16 + 8 + 12, chunkZ * 16 + 8), world);
         }
     }
 }
