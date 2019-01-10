@@ -31,15 +31,18 @@ import net.minecraft.world.World;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 @ZenRegister
 @ZenClass("mods.worldgenindicators.BlockChecker")
 public class BlockChecker implements IChecker {
-    private double           chance;
-    private List<IBlock>     blockList;
-    private List<IBlock>     blockWhitelist;
-    private List<IBlock>     blockBlacklist;
+
+    private double chance;
+    private List<IBlock> blockList;
+    private List<IBlock> blockWhitelist;
+    private List<IBlock> blockBlacklist;
     private List<IIndicator> indicators;
 
     public BlockChecker(double chance) {
@@ -50,12 +53,10 @@ public class BlockChecker implements IChecker {
         this.blockBlacklist = new ArrayList<>();
     }
 
-
     @ZenMethod
     public static BlockChecker create(double chance) {
         return new BlockChecker(chance);
     }
-
 
     @Override
     public double getWorkingChance() {
